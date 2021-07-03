@@ -23,7 +23,8 @@ app = Application(__name__)
 
 app.configuration({
     "config": config,
-    "app": [a]
+    "app": [a],
+    # "env": "local"
 })
 
 

@@ -1,4 +1,4 @@
-class AppConfiguration():
+class Configuration():
     DEBUG = False
 
     def dev(self):
