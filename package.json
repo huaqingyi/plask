@@ -1,0 +1,33 @@
+{
+  "name": "nodespiler",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon app.ts"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^0.21.1",
+    "cheerio": "^1.0.0-rc.10",
+    "fs-extra": "^10.0.0",
+    "iconv-lite": "^0.4.24",
+    "koa": "^2.13.1",
+    "koa-bodyparser": "^4.3.0",
+    "koa-nunjucks-2": "^3.0.2",
+    "koa-router": "^10.0.0",
+    "koa-static": "^5.0.0",
+    "lodash": "^4.17.21"
+  },
+  "devDependencies": {
+    "@types/fs-extra": "^9.0.12",
+    "@types/koa": "^2.13.3",
+    "@types/koa-bodyparser": "^4.3.1",
+    "@types/koa-router": "^7.4.2",
+    "@types/koa-static": "^4.0.1",
+    "@types/lodash": "^4.14.170",
+    "nodemon": "^2.0.9"
+  }
+}
