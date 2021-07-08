@@ -5,6 +5,7 @@ import bodyParser from 'koa-bodyparser';
 import Axios from 'axios';
 import cheerio, { Cheerio, CheerioAPI } from 'cheerio';
 import iconv from 'iconv-lite';
+import { find } from 'lodash';
 
 const app = new Koa();
 app.use(bodyParser());
@@ -35,7 +36,7 @@ app.use(async (ctx, next) => {
     const query = ctx.request.query;
     if (query && query.to) {
         const res = await axios.get(query.to as string);
-        const data = await new Promise<string>(resolve => {
+        const [data, buffer] = await new Promise<[string, Buffer]>(resolve => {
             const chunks: Buffer[] = [];
             res.data.on('data', (chunk: Buffer) => {
                 chunks.push(chunk);
@@ -43,12 +44,17 @@ app.use(async (ctx, next) => {
             res.data.on('end', () => {
                 const buffer = Buffer.concat(chunks);
                 const str = iconv.decode(buffer, 'utf-8');
-                resolve(str);
+                resolve([str, buffer]);
             });
         });
         const $m = cheerio.load(readFileSync(join(__dirname, 'public/index.html')));
         $m('#action').attr('value', query.to as string);
-        const $ = cheerio.load(data);
+        let $ = cheerio.load(data);
+        const charset = find($('meta[content]'), e => $(e).attr('content')?.indexOf('charset') !== -1);
+        if (charset) {
+            const c = (($(charset).attr('content') || '').split(';').find(n => n.indexOf('charset=') !== -1) || '').trim().replace('charset=', '');
+            if (c) $ = cheerio.load(iconv.decode(buffer, c));
+        }
         $m('head').html([$m('head').html(), $('head').html()].join('\n'));
         const script = readFileSync(join(__dirname, 'public/assets/index.js')).toString();
         removeSync(join(__dirname, 'public/index.js'));
