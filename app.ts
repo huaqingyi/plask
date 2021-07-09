@@ -13,26 +13,12 @@ app.use(bodyParser());
 
 const axios = Axios.create({ responseType: 'stream' });
 
-// function text($: CheerioAPI, el: Cheerio<any>, perfiex: string = '', idx: number) {
-//     if (el.text()) {
-//         el.prop('grabfixed', `${perfiex} ${el[0].tagName} ${idx}`);
-//     }
-//     const chidlren = el.children();
-//     if (chidlren) {
-//         chidlren.each((i, e) => {
-//             text($, $(e), `${perfiex} ${el[0].tagName} ${idx}`, i);
-//         });
-//     }
-//     return el;
-// }
-
 app.use(async (ctx, next) => {
     if (/\.(js|css)$/.test(ctx.path)) {
         ctx.body = readFileSync(join(__dirname, 'public', ctx.path.slice(1)));
         ctx.type = 'application/javascript; charset=utf-8';
         return await next();
     }
-    // console.log(111, ctx.request.query);
     const query = ctx.request.query;
     if (query && query.to) {
         const res = await axios.get(query.to as string);
