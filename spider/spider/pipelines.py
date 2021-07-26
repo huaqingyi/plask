@@ -19,6 +19,7 @@ class AirHistoryPipeline(object):
         self.file = open('area.json', 'w')
 
     def process_item(self, item, spider):
+        print(123123123, item)
         context = json.dumps(dict(item), ensure_ascii=False) + '\n'
         self.file.write(context)
         return item
