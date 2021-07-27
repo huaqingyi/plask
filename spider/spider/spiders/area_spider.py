@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
-from ..items import AirHistoryItem
+from ..items import AirHistoryItem, SpiderItem
 import json
 from urllib.parse import urlparse
+from copy import deepcopy
 import scrapy
 import pandas as pd
 from scrapy.item import Item, Field
@@ -24,27 +25,28 @@ class AreaSpiderSpider(scrapy.Spider):
             self.start_urls = data['start_urls']
             self.config = data['data']
 
-    def text(self, data, config, response):
-        res = response.xpath(config['xpath'] + '//text()').extract()
-        data[config['title']] = '\n'.join(res)
-        return data
-
     def url(self, item, config, response):
         res = response.xpath(config['xpath'] + '/@href').extract()
         yield scrapy.Request(url=res[0], callback=self.getUrl, meta=config['config'])
 
     def getUrl(self, response):
         meta = response.meta
-        res = response.xpath(meta['config']['xpath'] + '//text()').extract()
-        item = Item()
-        for d in meta['data']:
-            item.fields[d] = Field()
-            item[d] = meta['data'][d]
-
-        field = meta['config']['title']
-        item.fields[field] = Field()
-        item[field] = '\n'.join(res)
-        yield item
+        data = meta['data']
+        config = meta['config']
+        configs = meta['configs']
+        field = config['title']
+        res = response.xpath(config['config']['xpath'] + '//text()').extract()
+        data[field] = '\n'.join(res)
+        # data[field] = field
+        if len(configs) != 0:
+            meta = {'configs': configs[1:], 'data': data, 'config': configs[0]}
+            yield scrapy.Request(url=configs[0]['url'], callback=self.getUrl, meta=meta)
+        else:
+            item = SpiderItem()
+            for k in data:
+                item.fields[k] = Field()
+                item[k] = data[k]
+            yield item
 
     def parse(self, response):
         print('开始爬取 ....')
@@ -53,66 +55,21 @@ class AreaSpiderSpider(scrapy.Spider):
 
         data = {}
         for p in pdd['text']:
-            data = self.text(data, p, response)
+            res = response.xpath(p['xpath'] + '//text()').extract()
+            data[p['title']] = '\n'.join(res)
 
         baseURL = urlparse(self.base_url)
-        urlPrfix = baseURL.scheme + '://' + baseURL.netloc + '/'    
+        urlPrfix = baseURL.scheme + '://' + baseURL.netloc + '/'
+        https = []
         for p in pdd['url']:
             res = response.xpath(p['xpath'] + '//@href').extract()
             url = urlPrfix + res[0]
-            yield scrapy.Request(url=url, callback=self.getUrl, meta={'config': p['config'], 'data': data})
-        # print(-1111, data)
-        # item = Item()
-        # for config in self.config:
-        #     item.fields[config['title']] = Field()
-        #     func = getattr(self, config['type'])
+            p['url'] = url
+            https.append(p)
 
-        #     if hasattr(config, 'config') == False:
-        #         config['config'] = {}
-
-        #     yield func(item, config, response)
-        #     print(111222)
-        # yield item
-
-    # def parse(self, response):
-    #     print('爬取城市信息....')
-    #     title = response.xpath('//*[@id=\"3\"]/h3[1]/a[1]//text()').extract()
-    #     href = response.xpath('//*[@id=\"3\"]/h3[1]/a[1]/@href').extract()
-    #     # print(title, href)
-    #     content = yield scrapy.Request(url=href[0], callback=self.detail, meta={})
-    #     print(111, content)
-
-    #     # url_list = response.xpath("//div[@class='all']/div[@class='bottom']/ul/div[2]/li/a/@href").extract()  # 全部链接
-    #     # city_list = response.xpath("//div[@class='all']/div[@class='bottom']/ul/div[2]/li/a/text()").extract()  # 城市名称
-    #     # for url, city in zip(url_list, city_list):
-    #     #     url = self.base_url + url
-    #     #     yield scrapy.Request(url=url, callback=self.parse_month, meta={'city': city})
+        meta = {'configs': https[1:], 'data': data, 'config': https[0]}
+        yield scrapy.Request(url=https[0]['url'], callback=self.getUrl, meta=meta)
 
     def detail(self, response):
         content = response.xpath('/html/body//text()').extract()
         yield content
-
-    # def parse_month(self, response):
-    #     print('爬取{}月份...'.format(response.meta['city']))
-    #     url_list = response.xpath('//tbody/tr/td/a/@href').extract()
-    #     for url in url_list:
-    #         url = self.base_url + url
-    #         yield scrapy.Request(url=url, callback=self.parse_day, meta={'city': response.meta['city']})
-
-    # def parse_day(self, response):
-    #     print('爬取最终数据...')
-    #     item = AirHistoryItem()
-    #     node_list = response.xpath('//tr')
-    #     node_list.pop(0)  # 去除第一行标题栏
-    #     for node in node_list:
-    #         item['data'] = node.xpath('./td[1]/text()').extract_first()
-    #         item['city'] = response.meta['city']
-    #         item['aqi'] = node.xpath('./td[2]/text()').extract_first()
-    #         item['level'] = node.xpath('./td[3]/text()').extract_first()
-    #         item['pm2_5'] = node.xpath('./td[4]/text()').extract_first()
-    #         item['pm10'] = node.xpath('./td[5]/text()').extract_first()
-    #         item['so2'] = node.xpath('./td[6]/text()').extract_first()
-    #         item['co'] = node.xpath('./td[7]/text()').extract_first()
-    #         item['no2'] = node.xpath('./td[8]/text()').extract_first()
-    #         item['o3'] = node.xpath('./td[9]/text()').extract_first()
-    #         yield item
