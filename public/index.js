@@ -2027,9 +2027,9 @@ const ScriptRender = {
 
 //获取xpath
 function readXPath (element) {
-    if (element.id !== "") {//判断id属性，如果这个元素有id，则显 示//*[@id="xPath"]  形式内容
-        return '//*[@id=\"' + element.id + '\"]';
-    }
+    // if (element.id !== "") {//判断id属性，如果这个元素有id，则显 示//*[@id="xPath"]  形式内容
+    //     return '//*[@id=\"' + element.id + '\"]';
+    // }
     //这里需要需要主要字符串转译问题，可参考js 动态生成html时字符串和变量转译（注意引号的作用）
     if (element == document.body) {//递归到body处，结束递归
         return '/html/' + element.tagName.toLowerCase();

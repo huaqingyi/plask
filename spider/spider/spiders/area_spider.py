@@ -35,9 +35,24 @@ class AreaSpiderSpider(scrapy.Spider):
         config = meta['config']
         configs = meta['configs']
         field = config['title']
-        res = response.xpath(config['config']['xpath'] + '//text()').extract()
-        data[field] = '\n'.join(res)
-        # data[field] = field
+
+        if isinstance(config['config'], list):
+            data[field] = {}
+            for xconf in config['config']:
+                if xconf['type'] == 'text':
+                    res = response.xpath(xconf['xpath'] + '//text()').extract()
+                elif xconf['type'] == 'html':
+                    res = response.xpath(xconf['xpath'] + '//node()').extract()
+                data[field][xconf['title']] = '\n'.join(res)
+        else:
+            if xconf['type'] == 'text':
+                res = response.xpath(
+                    config['config']['xpath'] + '//text()').extract()
+            elif xconf['type'] == 'html':
+                res = response.xpath(
+                    config['config']['xpath'] + '//node()').extract()
+            data[field] = '\n'.join(res)
+
         if len(configs) != 0:
             meta = {'configs': configs[1:], 'data': data, 'config': configs[0]}
             yield scrapy.Request(url=configs[0]['url'], callback=self.getUrl, meta=meta)
@@ -54,21 +69,33 @@ class AreaSpiderSpider(scrapy.Spider):
             lambda x: x.to_dict('records')).to_dict()
 
         data = {}
-        for p in pdd['text']:
-            res = response.xpath(p['xpath'] + '//text()').extract()
+        for k in pdd.keys():
+            if k == 'text':
+                for p in pdd['text']:
+                    res = response.xpath(p['xpath'] + '//text()').extract()
+            elif k == 'html':
+                for p in pdd['html']:
+                    res = response.xpath(p['xpath'] + '//node()').extract()
             data[p['title']] = '\n'.join(res)
 
-        baseURL = urlparse(self.base_url)
-        urlPrfix = baseURL.scheme + '://' + baseURL.netloc + '/'
-        https = []
-        for p in pdd['url']:
-            res = response.xpath(p['xpath'] + '//@href').extract()
-            url = urlPrfix + res[0]
-            p['url'] = url
-            https.append(p)
+        if 'url' in pdd:
+            baseURL = urlparse(self.base_url)
+            urlPrfix = baseURL.scheme + '://' + baseURL.netloc + '/'
+            https = []
+            for p in pdd['url']:
+                res = response.xpath(p['xpath'] + '//@href').extract()
+                url = urlPrfix + res[0]
+                p['url'] = url
+                https.append(p)
 
-        meta = {'configs': https[1:], 'data': data, 'config': https[0]}
-        yield scrapy.Request(url=https[0]['url'], callback=self.getUrl, meta=meta)
+            meta = {'configs': https[1:], 'data': data, 'config': https[0]}
+            yield scrapy.Request(url=https[0]['url'], callback=self.getUrl, meta=meta)
+        else:
+            item = SpiderItem()
+            for k in data:
+                item.fields[k] = Field()
+                item[k] = data[k]
+            yield item
 
     def detail(self, response):
         content = response.xpath('/html/body//text()').extract()

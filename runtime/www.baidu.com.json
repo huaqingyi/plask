@@ -1,5 +1,7 @@
 {
-    "allowed_domains": ["bbs.bbicn.com"],
+    "allowed_domains": [
+        "bbs.bbicn.com"
+    ],
     "base_url": "https://bbs.bbicn.com/forum.php?mod=forumdisplay&fid=100",
     "start_urls": [
         "https://bbs.bbicn.com/forum.php?mod=forumdisplay&fid=100"
@@ -22,24 +24,40 @@
             "title": "内容",
             "xpath": "/html/body/div[6]/div[5]/div[1]/div[2]/div[4]/div[2]/form[1]/table[1]/tbody[4]/tr[1]/th[1]/a[2]",
             "type": "url",
-            "config": {
-                "feild": "field1",
-                "title": "内容",
-                "xpath": "/html/body",
-                "type": "text"
-            }
+            "config": [
+                {
+                    "feild": "field1",
+                    "title": "内容1",
+                    "xpath": "/html/body/div[6]/div[5]/div[2]/table[1]/tbody[1]/tr[1]/td[2]/h1[1]/span[1]",
+                    "type": "text"
+                },
+                {
+                    "feild": "field2",
+                    "title": "内容2",
+                    "xpath": "/html/body/div[6]/div[5]/div[2]/table[1]/tbody[1]/tr[1]/td[1]/div[1]",
+                    "type": "text"
+                },
+                {
+                    "feild": "field3",
+                    "title": "内容HTML",
+                    "xpath": "/html/body",
+                    "type": "html"
+                }
+            ]
         },
         {
             "feild": "field4",
             "title": "用户",
             "xpath": "/html/body/div[6]/div[5]/div[1]/div[2]/div[4]/div[2]/form[1]/table[1]/tbody[4]/tr[1]/td[2]/cite[1]/a[1]",
             "type": "url",
-            "config": {
-                "feild": "field1",
-                "title": "用户",
-                "xpath": "/html/body",
-                "type": "text"
-            }
+            "config": [
+                {
+                    "feild": "field1",
+                    "title": "用户",
+                    "xpath": "/html/body",
+                    "type": "text"
+                }
+            ]
         }
     ]
 }
