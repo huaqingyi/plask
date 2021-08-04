@@ -11,6 +11,7 @@ from scrapy.item import Item, Field
 class AreaSpiderSpider(scrapy.Spider):
     name = 'area_spider'
     config = []
+    next = None
     # allowed_domains = ['www.baidu.com']  # 爬取的域名，不会超出这个顶级域名
     # base_url = "https://www.baidu.com/s?ie=utf-8&f=8&rsv_bp=1&tn=54093922_12_hao_pg&wd=raise%20WebDriverException(%20selenium.common.exceptions.WebDriverException%3A%20Message%3A%20%27macos%27%20executable%20needs%20to%20be%20in%20PATH.%20Please%20see%20https%3A%2F%2Fsites.google.com%2Fa%2Fchromium.org%2Fchromedriver%2Fhome&oq=You%2520are%2520running%2520the%2520esm-bundler%2520build%2520of%2520vue-i18n.%2520It%2520is%2520recommended%2520to%2520conf&rsv_pq=fbbe0d3200ac3ccb&rsv_t=60caH82AxInWPOQ4CAyNW%2BE0GpT6obUy3MiF8Il2OIkPkhR7kA4hj%2BMuT8R65GVoOSzN148ag%2FrF&rqlang=cn&rsv_enter=0&rsv_dl=tb&rsv_sug3=2&rsv_btype=t&inputT=2404&rsv_sug4=2495"
     # start_urls = [base_url]
@@ -24,6 +25,7 @@ class AreaSpiderSpider(scrapy.Spider):
             self.base_url = data['base_url']
             self.start_urls = data['start_urls']
             self.config = data['data']
+            self.next = data['next']
 
     def url(self, item, config, response):
         res = response.xpath(config['xpath'] + '/@href').extract()
@@ -45,10 +47,10 @@ class AreaSpiderSpider(scrapy.Spider):
                     res = response.xpath(xconf['xpath'] + '//node()').extract()
                 data[field][xconf['title']] = '\n'.join(res)
         else:
-            if xconf['type'] == 'text':
+            if config['type'] == 'text':
                 res = response.xpath(
                     config['config']['xpath'] + '//text()').extract()
-            elif xconf['type'] == 'html':
+            elif config['type'] == 'html':
                 res = response.xpath(
                     config['config']['xpath'] + '//node()').extract()
             data[field] = '\n'.join(res)
@@ -97,6 +99,10 @@ class AreaSpiderSpider(scrapy.Spider):
                 item[k] = data[k]
             yield item
 
-    def detail(self, response):
-        content = response.xpath('/html/body//text()').extract()
-        yield content
+        # res = response.xpath(self.next + '//@href').extract()
+        # baseURL = urlparse(self.base_url)
+        # print(2222, baseURL.scheme + '://' + baseURL.netloc + '/' + res[0])
+        # yield scrapy.Request(url=baseURL.scheme + '://' + baseURL.netloc + '/' + res[0], callback=self.parse)
+        for i in range(1, 100):
+            url = self.base_url + '&page=' + str(i)
+            yield scrapy.Request(url, callback=self.parse)

@@ -28,20 +28,8 @@
                 {
                     "feild": "field1",
                     "title": "内容1",
-                    "xpath": "/html/body/div[6]/div[5]/div[2]/table[1]/tbody[1]/tr[1]/td[2]/h1[1]/span[1]",
+                    "xpath": "/html/body/div[6]/div[5]/div[2]/table[1]/tbody[1]/tr[1]/td[1]",
                     "type": "text"
-                },
-                {
-                    "feild": "field2",
-                    "title": "内容2",
-                    "xpath": "/html/body/div[6]/div[5]/div[2]/table[1]/tbody[1]/tr[1]/td[1]/div[1]",
-                    "type": "text"
-                },
-                {
-                    "feild": "field3",
-                    "title": "内容HTML",
-                    "xpath": "/html/body",
-                    "type": "html"
                 }
             ]
         },
@@ -54,10 +42,11 @@
                 {
                     "feild": "field1",
                     "title": "用户",
-                    "xpath": "/html/body",
+                    "xpath": "/html/body/div[4]/h2[1]/span[1]/a[1]",
                     "type": "text"
                 }
             ]
         }
-    ]
+    ],
+    "next": "/html/body/div[6]/div[5]/div[1]/div[2]/a[1]"
 }
