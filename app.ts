@@ -1,3 +1,8 @@
+/*
+ * @Author: huaqingyi
+ * @LastEditors: huaqingyi
+ * @Description: zeconding ...
+ */
 import { readFileSync, removeSync, writeFileSync } from 'fs-extra';
 import { join } from 'path';
 import Koa from 'koa';
@@ -6,12 +11,15 @@ import Axios from 'axios';
 import cheerio, { Cheerio, CheerioAPI } from 'cheerio';
 import iconv from 'iconv-lite';
 import { find } from 'lodash';
+import { Agent } from 'https';
+import { parse } from 'url';
 
 const app = new Koa();
 app.use(bodyParser());
 
 
 const axios = Axios.create({ responseType: 'stream' });
+const httpsAgent = new Agent({ rejectUnauthorized: false });
 
 app.use(async (ctx, next) => {
     if (/\.(js|css)$/.test(ctx.path)) {
@@ -21,6 +29,7 @@ app.use(async (ctx, next) => {
     }
     const query = ctx.request.query;
     if (query && query.to) {
+        // const res = await axios.get(query.to as string, { httpsAgent });
         const res = await axios.get(query.to as string);
         const [data, buffer] = await new Promise<[string, Buffer]>(resolve => {
             const chunks: Buffer[] = [];
@@ -33,7 +42,9 @@ app.use(async (ctx, next) => {
                 resolve([str, buffer]);
             });
         });
-        const $m = cheerio.load(readFileSync(join(__dirname, 'public/index.html')));
+        const { protocol, host } = parse(query.to as string);
+        const tpl = readFileSync(join(__dirname, 'public/index.html')).toString().replace('{{base}}', `${protocol}//${host}`);
+        const $m = cheerio.load(tpl);
         $m('#action').attr('value', query.to as string);
         let $ = cheerio.load(data);
         const charset = find($('meta[content]'), e => $(e).attr('content')?.indexOf('charset') !== -1);
